@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 add_executable(quant-scan-tests
     ${CMAKE_SOURCE_DIR}/test/core/test_date.cpp
+    ${CMAKE_SOURCE_DIR}/test/financials/test_money.cpp
 )
 
 target_link_libraries(quant-scan-tests

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/date.hpp"
+
 #include <string>
 
 namespace quant_scan::financials
@@ -11,7 +12,7 @@ namespace quant_scan::financials
 
         Type type{};
         size_t quantity{};
-        double strike_price{};
-        quant_scan::core::Date expiration_date{};
+        double strike{};
+        core::Date expiration{};
     };
 }
