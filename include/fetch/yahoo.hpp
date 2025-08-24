@@ -13,20 +13,19 @@
 
 namespace quant_scan::fetch
 {
-    // ---- tiny detection helpers (C++20) ----
-    template <typename T>
-    concept HasSymbol = requires(const T& t) { { t.symbol } -> std::convertible_to<std::string>; };
-
-    template <typename T>
-    concept HasOptionalExpiration = requires(const T& t)
+    namespace details
     {
-        // t.expiration is an optional-like with value().  Adapt if your type differs.
-        { t.expiration.has_value() } -> std::convertible_to<bool>;
-        { t.expiration.value() };
-    };
+        template <typename T>
+        concept HasSymbol = requires(const T& t) { { t.symbol } -> std::convertible_to<std::string>; };
 
-    // ---- forward declare; define in your request.hpp ----
-    struct OptionRequest;
+        template <typename T>
+        concept HasOptionalExpiration = requires(const T& t)
+        {
+            // t.expiration is an optional-like with value().  Adapt if your type differs.
+            { t.expiration.has_value() } -> std::convertible_to<bool>;
+            { t.expiration.value() };
+        };
+    }
 
     template <>
     struct Fetcher<Provider::yahoo>
@@ -72,7 +71,7 @@ namespace quant_scan::fetch
 
         // Overload when request has an expiration (optional)
         template <typename Request>
-        requires (HasSymbol<Request> && HasOptionalExpiration<Request>)
+        requires (details::HasSymbol<Request> && details::HasOptionalExpiration<Request>)
         static std::string build_options_url(const Request& req)
         {
             std::string url = "https://query1.finance.yahoo.com/v7/finance/options/";
@@ -88,7 +87,7 @@ namespace quant_scan::fetch
 
         // Overload when request has only a symbol
         template <typename Request>
-        requires (HasSymbol<Request> && (!HasOptionalExpiration<Request>))
+        requires (details::HasSymbol<Request> && (!details::HasOptionalExpiration<Request>))
         static std::string build_options_url(const Request& req)
         {
             std::string url = "https://query1.finance.yahoo.com/v7/finance/options/";
@@ -100,11 +99,10 @@ namespace quant_scan::fetch
         static std::int64_t to_unix_timestamp(const quant_scan::core::Date& date)
         {
             using namespace std::chrono;
+
             // Interpret as midnight UTC of that civil date
-            const year_month_day ymd = date.ymd;
-            const sys_days days = sys_days{ymd};
-            const sys_seconds sec = time_point_cast<seconds>(days);
-            return static_cast<std::int64_t>(sec.time_since_epoch().count());
+            const sys_seconds sec = time_point_cast<seconds>(sys_days(date.ymd));
+            return sec.time_since_epoch().count();
         }
 
         // -------- Result mapping (optional) --------
