@@ -7,6 +7,6 @@ namespace quant_scan::fetch
         yahoo = 0, polygon, databento
     };
 
-    template <Provider provider, typename Request>
+    template <Provider provider>
     struct Fetcher;
 }

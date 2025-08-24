@@ -7,3 +7,6 @@
 [submodule "dep/glad"]
 	path = dep/glad
 	url = https://github.com/Dav1dde/glad.git
+[submodule "dep/googletest"]
+	path = dep/googletest
+	url = https://github.com/google/googletest.git

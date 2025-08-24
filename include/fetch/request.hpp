@@ -1,16 +1,14 @@
 #pragma once
 
-#include <chrono>
+#include "core/date.hpp"
+
 #include <string>
 
 namespace quant_scan::fetch
 {
-
-
-    struct OptionChain
+    struct OptionRequest
     {
-            using result_t = std::vector<>
         std::string symbol{};
-        std::string expiration_date{};
+        core::Date expiration_date{};
     };
 }
