@@ -10,3 +10,7 @@
 [submodule "dep/googletest"]
 	path = dep/googletest
 	url = https://github.com/google/googletest.git
+[submodule "dep/nlohmann_json"]
+	path = dep/nlohmann_json
+	url = https://github.com/nlohmann/json.git
+	branch = develop
