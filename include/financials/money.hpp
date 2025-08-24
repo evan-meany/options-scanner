@@ -14,31 +14,31 @@ namespace quant_scan::financials
         template<> struct CurrencyTraits<Currency::USD>
         {
             static constexpr int minor_units = 2;
-            static constexpr const char* symbol = "$";
+            static constexpr auto symbol = "$";
         };
 
         template<> struct CurrencyTraits<Currency::EUR>
         {
             static constexpr int minor_units = 2;
-            static constexpr const char* symbol = "€";
+            static constexpr auto symbol = "€";
         };
 
         template<> struct CurrencyTraits<Currency::GBP>
         {
             static constexpr int minor_units = 2;
-            static constexpr const char* symbol = "£";
+            static constexpr auto symbol = "£";
         };
 
         template<> struct CurrencyTraits<Currency::JPY>
         {
             static constexpr int minor_units = 0;
-            static constexpr const char* symbol = "¥";
+            static constexpr auto symbol = "¥";
         };
 
         template<> struct CurrencyTraits<Currency::KWD>
         {
             static constexpr int minor_units = 3;
-            static constexpr const char* symbol = "KD ";
+            static constexpr auto symbol = "KD ";
         };
     }
 
@@ -49,14 +49,14 @@ namespace quant_scan::financials
         std::int64_t minor{}; // e.g. cents, fils, sen
 
         constexpr Money() = default;
-        explicit constexpr Money(std::int64_t money) : minor(money) {}
+        explicit constexpr Money(const std::int64_t money) : minor(money) {}
 
         static constexpr Money from_double(const double money)
         {
             // scale by 10^minor_units with rounding
             std::int64_t scale = 1;
             for (int i = 0; i < Traits::minor_units; ++i) scale *= 10;
-            return Money{ static_cast<std::int64_t>(std::llround(money * scale)) };
+            return Money{ (std::llround(money * scale)) };
         }
 
         [[nodiscard]] constexpr double as_double() const

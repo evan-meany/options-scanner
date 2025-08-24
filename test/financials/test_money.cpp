@@ -6,7 +6,7 @@
 
 using namespace quant_scan::financials;
 
-template <typename MoneyT>
+template <typename MoneyType>
 class MoneyTypedTest : public ::testing::Test
 {
 };
@@ -18,80 +18,77 @@ TYPED_TEST(MoneyTypedTest, from_double_and_as_double_round_trip)
 {
     using money_t = TypeParam;
 
-    // Pick a value with fractional part to test rounding for each minor_units
-    const double value = 123.456789;
+    constexpr double input_value = 123.456789;
 
-    const auto m = money_t::from_double(value);
+    const auto money_value = money_t::from_double(input_value);
 
-    // Expected minor units = round(value * 10^minor_units)
-    std::int64_t scale = 1;
-    for (int i = 0; i < money_t::Traits::minor_units; ++i)
+    std::int64_t scale_factor = 1;
+    for (int index = 0; index < money_t::Traits::minor_units; ++index)
     {
-        scale *= 10;
+        scale_factor *= 10;
     }
 
-    const auto expected_minor = static_cast<std::int64_t>(std::llround(value * static_cast<double>(scale)));
-    EXPECT_EQ(m.minor, expected_minor);
+    const auto expected_minor_units = std::llround(input_value * static_cast<double>(scale_factor));
+    EXPECT_EQ(expected_minor_units, money_value.minor);
 
-    const double expected_double = static_cast<double>(expected_minor) / static_cast<double>(scale);
-    EXPECT_NEAR(m.as_double(), expected_double, 1e-9);
+    const double expected_double_value =
+        static_cast<double>(expected_minor_units) / static_cast<double>(scale_factor);
+    EXPECT_NEAR(expected_double_value, money_value.as_double(), 1e-9);
 }
 
 TYPED_TEST(MoneyTypedTest, arithmetic_same_currency_only)
 {
     using money_t = TypeParam;
 
-    const auto a = money_t::from_double(1.10);
-    const auto b = money_t::from_double(2.25);
+    const auto money_one = money_t::from_double(1.10);
+    const auto money_two = money_t::from_double(2.25);
 
-    const auto c = a + b;
-    EXPECT_EQ(c.minor, a.minor + b.minor);
+    const auto money_sum = money_one + money_two;
+    EXPECT_EQ(money_one.minor + money_two.minor, money_sum.minor);
 
-    money_t d = a;
-    d += b;
-    EXPECT_EQ(d.minor, a.minor + b.minor);
+    money_t money_accumulated = money_one;
+    money_accumulated += money_two;
+    EXPECT_EQ(money_one.minor + money_two.minor, money_accumulated.minor);
 
-    const auto e = b - a;
-    EXPECT_EQ(e.minor, b.minor - a.minor);
+    const auto money_difference = money_two - money_one;
+    EXPECT_EQ(money_two.minor - money_one.minor, money_difference.minor);
 }
 
 TYPED_TEST(MoneyTypedTest, ordering_and_equality)
 {
     using money_t = TypeParam;
 
-    const auto a = money_t::from_double(5.00);
-    const auto b = money_t::from_double(5.00);
-    const auto c = money_t::from_double(6.00);
+    const auto money_low = money_t::from_double(5.00);
+    const auto money_equal = money_t::from_double(5.00);
+    const auto money_high = money_t::from_double(6.00);
 
-    EXPECT_TRUE(a == b);
-    EXPECT_FALSE(a == c);
-    EXPECT_TRUE(a < c);
-    EXPECT_TRUE(c > a);
+    EXPECT_TRUE(money_low == money_equal);
+    EXPECT_FALSE(money_low == money_high);
+    EXPECT_TRUE(money_low < money_high);
+    EXPECT_TRUE(money_high > money_low);
 }
 
 // Non-typed checks for specific currency rules (minor_units differences)
 TEST(MoneySpecificTest, jpy_has_zero_minor_units_rounding)
 {
-    const auto a = JPY::from_double(100.49);
-    const auto b = JPY::from_double(100.50);
+    const auto yen_low = JPY::from_double(100.49);
+    const auto yen_high = JPY::from_double(100.50);
 
-    // JPY rounds to whole yen
-    EXPECT_EQ(a.minor, 100);
-    EXPECT_EQ(b.minor, 101);
-    EXPECT_DOUBLE_EQ(a.as_double(), 100.0);
-    EXPECT_DOUBLE_EQ(b.as_double(), 101.0);
+    EXPECT_EQ(100, yen_low.minor);
+    EXPECT_EQ(101, yen_high.minor);
+    EXPECT_DOUBLE_EQ(100.0, yen_low.as_double());
+    EXPECT_DOUBLE_EQ(101.0, yen_high.as_double());
 }
 
 TEST(MoneySpecificTest, kwd_has_three_minor_units_rounding)
 {
-    const auto a = KWD::from_double(1.2344);
-    const auto b = KWD::from_double(1.2345);
+    const auto dinar_low = KWD::from_double(1.2344);
+    const auto dinar_high = KWD::from_double(1.2345);
 
-    // KWD rounds to 3 decimal places
-    EXPECT_EQ(a.minor, 1234);  // 1.234
-    EXPECT_EQ(b.minor, 1235);  // 1.235
-    EXPECT_NEAR(a.as_double(), 1.234, 1e-12);
-    EXPECT_NEAR(b.as_double(), 1.235, 1e-12);
+    EXPECT_EQ(1234, dinar_low.minor);  // 1.234
+    EXPECT_EQ(1235, dinar_high.minor); // 1.235
+    EXPECT_NEAR(1.234, dinar_low.as_double(), 1e-12);
+    EXPECT_NEAR(1.235, dinar_high.as_double(), 1e-12);
 }
 
 // Compile-time sanity: currency types are distinct
